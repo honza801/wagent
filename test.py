@@ -3,24 +3,41 @@
 import sys
 import zmq
 import zmq.ssh
+import json
 
 context = zmq.Context()
 
 socket = context.socket(zmq.REQ)
 #socket.connect("tcp://127.0.0.1:5555")
 tunnel = zmq.ssh.tunnel_connection(socket, "tcp://127.0.0.2:5555", "127.0.0.1", paramiko=True)
+print(tunnel)
 
 client = ""
 if len(sys.argv) > 1:
     client = sys.argv[1]
 
-#  Do 10 requests, waiting each time for a response
-for request in range(3):
-    print(tunnel)
-    req = u'Req from {} no.{}'.format(client, request)
-    print("Sending request: {}".format(req))
+def send_request(req):
+    print("Sending request [ %s ]" % req)
     socket.send(bytes(req, 'utf-8'))
-
-    #  Get the reply.
     message = socket.recv()
-    print("Received reply %s [ %s ]" % (request, message))
+    print("Received reply [ %s ]" % (message))
+    
+req = u'Req from {}'.format(client)
+send_request(req)
+
+rbd_create = { 'image': 'flat' }
+send_request(json.dumps(rbd_create))
+
+rbd_create = { 'action': 'ac', 'subaction': 'flat' }
+send_request(json.dumps(rbd_create))
+
+rbd_create = { 'action': 'rbd', 'subaction': 'none' }
+send_request(json.dumps(rbd_create))
+
+rbd_create = {
+    'action': 'rbd',
+    'subaction': ['snap', 'list'],
+    'image': 'novejimages',
+    'snap_name': 'snap1'
+}
+send_request(json.dumps(rbd_create))
