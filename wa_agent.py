@@ -1,5 +1,6 @@
 import zmq
 import json
+from json.decoder import JSONDecodeError
 import subprocess
 import shutil
 import logging
@@ -28,15 +29,23 @@ class WebvirtcloudAgent():
             reply = self.try_action(request)
             self.send_reply(reply)
         except WAException as e:
-            logging.debug(e.message)
+            logging.warning(e.message)
             self.send_reply(e.message, e.exitcode)
         except Exception as e:
             logging.exception(e)
             msg = '{}: {}'.format(type(e).__name__, e.args[0])
             self.send_reply(msg)
     
-    def send_reply(self, reply, exit=0):
-        rep = { 'message': reply, 'exit': exit }
+    def send_reply(self, reply, exitcode=0):
+        if type(reply) == bytes:
+            reply = reply.decode('utf-8')
+        try:
+            sreply = json.loads(reply)
+            reply = sreply
+        except JSONDecodeError:
+            pass
+        rep = { 'message': reply, 'exitcode': exitcode }
+        logging.debug(rep)
         rep_str = json.dumps(rep)
         self.socket.send(bytes(rep_str, 'utf-8'))
 
@@ -61,8 +70,12 @@ class WebvirtcloudAgent():
         cmd.append(cmdpath)
         if action['subaction'][0] == 'snap':
             cmd.extend(action['subaction'])
-            snapshot_name = "{image}@{snap_name}".format(**action)
-            cmd.append(snapshot_name)
+            if action['subaction'][1] == 'list':
+                cmd.extend(['--format', 'json'])
+                cmd.append(action['image'])
+            else:
+                snapshot_name = "{image}@{snap_name}".format(**action)
+                cmd.append(snapshot_name)
             return cmd
         else:
             msg = "Unsupported subaction '{}'".format(action['subaction'][0])
@@ -93,5 +106,4 @@ class WebvirtcloudAgent():
 if __name__ == '__main__':
     logging.basicConfig(level=log_level)
     wa = WebvirtcloudAgent()
-    main()
  
