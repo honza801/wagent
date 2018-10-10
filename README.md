@@ -15,7 +15,7 @@ apt install python3 python3-virtualenv virtualenv
 Clone repository
 
 ```
-git clone ... /opt/wagent
+git clone https://github.com/honza801/wagent /opt/wagent
 ```
 
 Create python virtual environment
