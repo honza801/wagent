@@ -22,8 +22,7 @@ Create python virtual environment
 
 ```
 virtualenv -p python3 /opt/wagent/venv
-source /opt/wagent/venv/bin/activate
-pip install -r /opt/wagent/requirements.txt
+/opt/wagent/venv/bin/pip install -r /opt/wagent/requirements.txt
 ```
 
 Enable service
