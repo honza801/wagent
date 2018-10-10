@@ -1,0 +1,10 @@
+[Unit]
+Description=Webvirtcloud Agent
+
+[Service]
+WorkingDirectory=/opt/wagent
+ExecStart=/opt/wagent/venv/bin/python3 -u ./wagent.py
+
+[Install]
+Alias=wagent
+WantedBy=multi-user.target
