@@ -66,24 +66,19 @@ class WebvirtcloudAgent():
             raise WAException(msg, 102)
     
     def _action_rbd(self, action):
-        ac_sub = action['subaction'][0]
+        ac_sub = action['subaction']
         if ac_sub == 'clone':
             return self.rbd.clone(action['source'], action['target'])
-        if ac_sub == 'snap':
-            ac_snap = action['subaction'][1]
-            if ac_snap == 'list':
-                return self.rbd.snap_list(action['image'])
-            elif ac_snap == 'create':
-                return self.rbd.snap_create(action['image'], action['snap_name'])
-            elif ac_snap == 'rollback':
-                return self.rbd.snap_rollback(action['image'], action['snap_name'])
-            elif ac_snap == 'remove':
-                return self.rbd.snap_remove(action['image'], action['snap_name'])
-            else:
-                msg = "Unsupported subaction '{}'".format(action['subaction'][1])
-                raise WAException(msg, 104)
+        if ac_sub == 'snap_list':
+            return self.rbd.snap_list(action['image'])
+        elif ac_sub == 'snap_create':
+            return self.rbd.snap_create(action['image'], action['snap_name'])
+        elif ac_sub == 'snap_rollback':
+            return self.rbd.snap_rollback(action['image'], action['snap_name'])
+        elif ac_sub == 'snap_remove':
+            return self.rbd.snap_remove(action['image'], action['snap_name'])
         else:
-            msg = "Unsupported subaction '{}'".format(action['subaction'][0])
+            msg = "Unsupported subaction '{}'".format(ac_sub)
             raise WAException(msg, 103)
 
 

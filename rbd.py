@@ -11,15 +11,15 @@ class RBD:
             raise Exception("rbd binary not found")
 
     def info(self, image):
-        params = 'snap list {}'.format(image)
+        params = 'info {}'.format(image)
         info = self.runrbd_json(params.split(' '))
         return info
         
-    def clone(self, source, dest):
-        src_snap = ''
-        snaps = self.snap_list(source)
+    def get_protected_snapshot(self, image):
+        src_snap = None
+        snaps = self.snap_list(image)
         for snap in snaps:
-            snap_spec = "{}@{}".format(source, snap['name'])
+            snap_spec = "{}@{}".format(image, snap['name'])
             info = self.info(snap_spec)
             if info['protected'] == 'true':
                 src_snap = snap['name']
@@ -28,11 +28,15 @@ class RBD:
             src_snap = "wagent-{}".format(random.randint(1000,10000))
             self.snap_create(source, src_snap)
             self.snap_protect(source, src_snap)
+        return src_snap
+
+    def clone(self, source, dest):
+        src_snap = self.get_protected_snapshot(source)
         params = 'clone {}@{} {}'.format(source, src_snap, dest)
         src_info = self.info(source)
         data_pool = src_info.get('data_pool', None)
         if data_pool:
-            params += ' --data-pool {}'.format(data-pool)
+            params += ' --data-pool {}'.format(data_pool)
         out = self.runrbd(params.split(" "))
         return out
 
