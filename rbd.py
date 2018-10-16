@@ -26,8 +26,8 @@ class RBD:
                 break
         if not src_snap:
             src_snap = "wagent-{}".format(random.randint(1000,10000))
-            self.snap_create(source, src_snap)
-            self.snap_protect(source, src_snap)
+            self.snap_create(image, src_snap)
+            self.snap_protect(image, src_snap)
         return src_snap
 
     def clone(self, source, dest):
@@ -75,6 +75,7 @@ class RBD:
         cmd.extend(params)
         process =  subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if process.returncode == 0:
+            logging.debug(" ".join(cmd))
             return process.stdout.decode('utf-8')
         else:
             msg = "Error occured during rbd command: '{}'".format(cmd)
