@@ -4,13 +4,14 @@ from json.decoder import JSONDecodeError
 import subprocess
 import shutil
 import logging
-from rbd import RBD
+from rbd import *
 
 bind_to = 'tcp://127.0.0.2:5555'
 log_level = logging.INFO
 
 class WAException(Exception):
     def __init__(self, message, exitcode):
+        super().__init__(message)
         self.message = message
         self.exitcode = exitcode
 
@@ -33,6 +34,10 @@ class WebvirtcloudAgent():
             self.send_reply(reply)
         except WAException as e:
             logging.warning(e.message)
+            self.send_reply(e.message, e.exitcode)
+        except RBDException as e:
+            logging.warning(e.message)
+            logging.warning(e.cmd)
             self.send_reply(e.message, e.exitcode)
         except Exception as e:
             logging.exception(e)

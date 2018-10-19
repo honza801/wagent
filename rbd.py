@@ -4,11 +4,20 @@ import logging
 import json
 import random
 
+
+class RBDException(Exception):
+    def __init__(self, exitcode, message, cmd=[]):
+        super().__init__(message)
+        self.exitcode = exitcode
+        self.message = message
+        self.cmd = cmd
+
+
 class RBD:
     def __init__(self):
         self.rbdbin = shutil.which('rbd')
         if not self.rbdbin:
-            raise Exception("rbd binary not found")
+            raise RBDException(1, "rbd binary not found")
 
     def info(self, image):
         params = 'info {}'.format(image)
@@ -78,10 +87,7 @@ class RBD:
             logging.debug(" ".join(cmd))
             return process.stdout.decode('utf-8')
         else:
-            msg = "Error occured during rbd command: '{}'".format(cmd)
-            msg += ", returncode: {}".format(process.returncode)
-            msg += ", stderr: {}".format(process.stderr)
-            raise Exception(msg)
+            raise RBDException(process.returncode, process.stderr, cmd)
 
     def runrbd_json(self, params):
         params.extend(['--format', 'json'])
